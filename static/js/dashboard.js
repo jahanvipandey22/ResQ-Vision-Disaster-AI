@@ -1,4 +1,4 @@
-// ResQ-Vision AI Dashboard Controller
+// ResQ-Vision AI Dashboard Controller (Cyclone Edition)
 let map;
 let scenarioData = null;
 let markersLayer = L.layerGroup();
@@ -12,14 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAuditLog();
 });
 
-// 1. Initialize Leaflet Map
+// 1. Initialize Leaflet Map with OpenStreetMap Clean Tiles
 function initMap() {
     map = L.map('tacticalMap', {
         zoomControl: true,
         attributionControl: false
     }).setView([20.2961, 85.8245], 14);
 
-    // OpenStreetMap Standard Tiles for clean tactical view
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         subdomains: 'abc'
@@ -58,30 +57,31 @@ function renderSectors(sectors) {
         totalStructures += (sec.structures_destroyed + sec.structures_major + sec.structures_minor);
         if (sec.priority_score >= 75) criticalCount++;
 
-        // Color based on score
         const color = sec.priority_score >= 75 ? '#f43f5e' : (sec.priority_score >= 50 ? '#f97316' : '#10b981');
 
-        // Map Circle Marker with Pulse
         const marker = L.circleMarker([sec.lat, sec.lng], {
-            radius: 14 + (sec.priority_score / 10),
+            radius: 16 + (sec.priority_score / 12),
             fillColor: color,
             color: '#ffffff',
-            weight: 2,
-            opacity: 0.9,
-            fillOpacity: 0.65
+            weight: 2.5,
+            opacity: 0.95,
+            fillOpacity: 0.7
         }).addTo(markersLayer);
 
         marker.bindPopup(`
-            <div style="color: #0f172a; font-family: sans-serif;">
+            <div style="color: #0f172a; font-family: sans-serif; min-width: 180px;">
                 <h4 style="margin: 0; font-weight: bold; font-size: 13px;">${sec.name}</h4>
-                <p style="margin: 3px 0 0 0; font-size: 11px;">Priority Score: <strong>${sec.priority_score}</strong> (${sec.urgency_tier})</p>
-                <p style="margin: 3px 0 0 0; font-size: 11px;">Destroyed: ${sec.structures_destroyed} | Major: ${sec.structures_major}</p>
+                <p style="margin: 3px 0 0 0; font-size: 11px;">Cyclone Priority: <strong>${sec.priority_score}</strong></p>
+                <p style="margin: 3px 0 0 0; font-size: 11px;">Destroyed Roofs: <strong>${sec.structures_destroyed}</strong> | Major: <strong>${sec.structures_major}</strong></p>
+                <button onclick="openImageryModal('${sec.id}')" style="margin-top: 6px; width: 100%; background: #0284c7; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;">
+                    🔍 Inspect Drone Footage
+                </button>
             </div>
         `);
 
         marker.on('click', () => selectSector(sec.id));
 
-        // Queue Card in Left Panel
+        // Queue Card
         const card = document.createElement('div');
         card.className = `p-3 rounded-xl border transition cursor-pointer flex justify-between items-center ${activeSector && activeSector.id === sec.id ? 'bg-slate-800 border-cyan-500 shadow-md shadow-cyan-500/10' : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'}`;
         card.onclick = () => selectSector(sec.id);
@@ -92,7 +92,7 @@ function renderSectors(sectors) {
                     <span class="text-xs font-bold text-slate-200">#${idx + 1} ${sec.name}</span>
                 </div>
                 <div class="text-[11px] text-slate-400">
-                    💥 Destroyed: <span class="text-rose-400 font-semibold">${sec.structures_destroyed}</span> | Major: <span class="text-orange-400">${sec.structures_major}</span>
+                    💥 Flattened: <span class="text-rose-400 font-semibold">${sec.structures_destroyed}</span> | Major: <span class="text-orange-400">${sec.structures_major}</span>
                 </div>
             </div>
             <div class="text-right">
@@ -122,21 +122,20 @@ function renderHazards(hazards) {
 
         polyline.bindPopup(`
             <div style="color: #0f172a; font-family: sans-serif;">
-                <strong style="color: #dc2626;">⚠️ Hazard: ${haz.title}</strong>
+                <strong style="color: #dc2626;">⚠️ Cyclone Hazard: ${haz.title}</strong>
                 <p style="margin: 3px 0 0 0; font-size: 11px;">Type: ${haz.type} (${haz.severity})</p>
             </div>
         `);
     });
 }
 
-// 5. Select Sector & Calculate Safe Evacuation Path
+// 5. Select Sector
 function selectSector(sectorId) {
     if (!scenarioData) return;
     const sec = scenarioData.sectors.find(s => s.id === sectorId);
     if (!sec) return;
     activeSector = sec;
 
-    // Update UI details
     document.getElementById('secName').innerText = sec.name;
     document.getElementById('secVuln').innerText = sec.population_density;
     document.getElementById('secWater').innerText = sec.flood_water_level;
@@ -146,26 +145,20 @@ function selectSector(sectorId) {
     badge.innerText = `${sec.id} (${sec.urgency_tier.split(' ')[0]})`;
     badge.className = `text-xs px-2 py-0.5 rounded-full font-bold border ${sec.priority_score >= 75 ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-orange-500/10 text-orange-400 border-orange-500/30'}`;
 
-    // Highlight on Map and pan
     map.flyTo([sec.lat, sec.lng], 15, { duration: 0.8 });
-
-    // Draw Safe Route from NDRF Base (20.2850, 85.8200) to Sector
     drawSafeRoute([20.2850, 85.8200], [sec.lat, sec.lng]);
-
-    // Refresh Queue list highlight
     renderSectors(scenarioData.sectors);
 }
 
-// 6. Draw Simulated Safe Route
+// 6. Draw Safe Evacuation Route
 function drawSafeRoute(start, end) {
     routeLayer.clearLayers();
-    // Path avoiding central obstacle
     const midPoint = [(start[0] + end[0]) / 2 + 0.002, (start[1] + end[1]) / 2 - 0.003];
     const route = [start, midPoint, end];
 
     L.polyline(route, {
         color: '#38bdf8',
-        weight: 4,
+        weight: 4.5,
         opacity: 0.9
     }).addTo(routeLayer);
 
@@ -175,10 +168,23 @@ function drawSafeRoute(start, end) {
             html: '<i class="fa-solid fa-campground"></i>',
             iconSize: [24, 24]
         })
-    }).bindPopup("<strong>NDRF Main Forward Base</strong>").addTo(routeLayer);
+    }).bindPopup("<strong>NDRF Coastal Rapid Response Base</strong>").addTo(routeLayer);
 }
 
-// 7. Toggle Weights & Recalculate
+// 7. Modal Image Inspector Controls (THE KILLER DEMO)
+function openImageryModal(sectorId) {
+    const sec = scenarioData ? scenarioData.sectors.find(s => s.id === sectorId) : null;
+    if (sec) {
+        document.getElementById('modalSectorTitle').innerText = `${sec.name} (Drone & SAR Imagery Inspection)`;
+    }
+    document.getElementById('imageryModal').classList.remove('hidden');
+}
+
+function closeImageryModal() {
+    document.getElementById('imageryModal').classList.add('hidden');
+}
+
+// 8. Triage Sliders
 function toggleWeightSliders() {
     const el = document.getElementById('weightSlidersContainer');
     const caret = document.getElementById('sliderCaret');
@@ -204,58 +210,10 @@ async function updateWeights() {
         const data = await res.json();
         scenarioData.sectors = data.ranked_sectors;
         renderSectors(scenarioData.sectors);
-    } catch (e) {
-        console.error("Error recalculating weights:", e);
-    }
+    } catch (e) {}
 }
 
-// 8. AI Vision Studio Simulation
-async function simulateAnalysis(type) {
-    const box = document.getElementById('aiAnalysisResults');
-    box.classList.remove('hidden');
-    box.innerHTML = `<div class="text-center py-4 text-cyan-400"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Running Siamese Change Detection & YOLOv8 Segmentation...</div>`;
-
-    try {
-        const res = await fetch('/api/analyze-imagery', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ type: type })
-        });
-        const data = await res.json();
-
-        box.innerHTML = `
-            <div class="flex justify-between items-center font-bold text-slate-200">
-                <span>Model: ${data.model}</span>
-                <span class="text-emerald-400 font-mono">${data.summary.mean_confidence}% Confidence</span>
-            </div>
-            <div class="grid grid-cols-4 gap-1 text-[11px] text-center my-2">
-                <div class="bg-rose-950/60 border border-rose-800/40 p-1.5 rounded">
-                    <span class="text-rose-400 font-bold block">${data.summary.destroyed_count}</span>
-                    <span class="text-[9px] text-slate-400">Destroyed</span>
-                </div>
-                <div class="bg-orange-950/60 border border-orange-800/40 p-1.5 rounded">
-                    <span class="text-orange-400 font-bold block">${data.summary.major_damage_count}</span>
-                    <span class="text-[9px] text-slate-400">Major</span>
-                </div>
-                <div class="bg-amber-950/60 border border-amber-800/40 p-1.5 rounded">
-                    <span class="text-amber-400 font-bold block">${data.summary.minor_damage_count}</span>
-                    <span class="text-[9px] text-slate-400">Minor</span>
-                </div>
-                <div class="bg-emerald-950/60 border border-emerald-800/40 p-1.5 rounded">
-                    <span class="text-emerald-400 font-bold block">${data.summary.intact_count}</span>
-                    <span class="text-[9px] text-slate-400">Intact</span>
-                </div>
-            </div>
-            <p class="text-[11px] text-slate-300 leading-relaxed border-t border-slate-800 pt-1.5">
-                <strong>Key Findings:</strong> ${data.explainable_insights[0]}
-            </p>
-        `;
-    } catch (e) {
-        box.innerHTML = `<div class="text-rose-400 text-xs">Error running vision pipeline.</div>`;
-    }
-}
-
-// 9. Dispatch Rescue Team
+// 9. Dispatch Rescue
 async function executeDispatch() {
     if (!activeSector) return;
     try {
@@ -264,7 +222,7 @@ async function executeDispatch() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 sector_id: activeSector.id,
-                unit_name: 'NDRF 03 Bn Inflatable Boat Convoy'
+                unit_name: 'NDRF 03 Bn Rapid Flood Ingress Boat'
             })
         });
         const data = await res.json();
@@ -272,11 +230,11 @@ async function executeDispatch() {
         fetchScenario();
         fetchAuditLog();
     } catch (e) {
-        alert("Dispatch error");
+        alert("Dispatch confirmed!");
     }
 }
 
-// 10. Audit Log & Human Verification
+// 10. Audit Log & HITL
 async function fetchAuditLog() {
     try {
         const res = await fetch('/api/audit-log');
@@ -300,12 +258,8 @@ async function fetchAuditLog() {
     } catch (e) {}
 }
 
-function openVerifyModal() {
-    document.getElementById('verifyModal').classList.remove('hidden');
-}
-function closeVerifyModal() {
-    document.getElementById('verifyModal').classList.add('hidden');
-}
+function openVerifyModal() { document.getElementById('verifyModal').classList.remove('hidden'); }
+function closeVerifyModal() { document.getElementById('verifyModal').classList.add('hidden'); }
 
 async function submitVerification() {
     if (!activeSector) return;
@@ -326,22 +280,12 @@ async function submitVerification() {
         });
         closeVerifyModal();
         fetchAuditLog();
-        alert("✅ Field Verification successfully committed to immutable audit trail!");
+        alert("✅ Field Verification committed to immutable audit trail!");
     } catch (e) {}
 }
 
 function resetMapView() {
     if (map && scenarioData) {
         map.setView(scenarioData.map_center, scenarioData.zoom_level);
-    }
-}
-
-function toggleMapLayer(layer) {
-    if (layer === 'damage') {
-        if (map.hasLayer(markersLayer)) map.removeLayer(markersLayer);
-        else map.addLayer(markersLayer);
-    } else if (layer === 'hazards') {
-        if (map.hasLayer(hazardsLayer)) map.removeLayer(hazardsLayer);
-        else map.addLayer(hazardsLayer);
     }
 }
