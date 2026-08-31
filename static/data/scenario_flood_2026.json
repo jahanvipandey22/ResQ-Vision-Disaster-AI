@@ -1,0 +1,147 @@
+{
+  "scenario_name": "Super Cyclone Impact & Coastal Storm Surge Emergency",
+  "disaster_type": "Category 4 Severe Cyclonic Storm (Wind Gusts 195 km/h)",
+  "affected_region": "Coastal Bay of Bengal (Puri - Paradip - Coastal Corridor)",
+  "incident_time": "2026-08-31 03:00 IST",
+  "map_center": [
+    20.2961,
+    85.8245
+  ],
+  "zoom_level": 14,
+  "wind_speed": "195 km/h",
+  "storm_surge": "2.4 meters",
+  "sectors": [
+    {
+      "id": "SEC-C1",
+      "name": "Sector 4 - Coastal Fishing Basti & Harbor",
+      "lat": 20.2985,
+      "lng": 85.821,
+      "damage_score": 94.0,
+      "vulnerability_score": 96.0,
+      "access_score": 88.0,
+      "population_density": "High (Kaccha Houses, Fisherfolk Settlement)",
+      "critical_assets": [
+        "Primary Health Sub-Center",
+        "Fisheries Jetty"
+      ],
+      "structures_destroyed": 24,
+      "structures_major": 38,
+      "structures_minor": 12,
+      "flood_water_level": "2.2m Storm Surge Inundation",
+      "rescue_status": "PENDING_DISPATCH",
+      "evidence": "UAV ortho-imagery confirms 24 kutcha houses completely flattened; tin roofs blown 150m away by 195 km/h winds."
+    },
+    {
+      "id": "SEC-C2",
+      "name": "Sector 2 - District Hospital & Trauma Zone",
+      "lat": 20.293,
+      "lng": 85.8315,
+      "damage_score": 68.0,
+      "vulnerability_score": 99.0,
+      "access_score": 82.0,
+      "population_density": "Extremely High (ICU Patients, Trauma Wing)",
+      "critical_assets": [
+        "District Govt Hospital",
+        "Emergency Oxygen Substation"
+      ],
+      "structures_destroyed": 2,
+      "structures_major": 14,
+      "structures_minor": 26,
+      "flood_water_level": "0.8m Ground Water Logging",
+      "rescue_status": "EN_ROUTE",
+      "evidence": "3 massive banyan trees uprooted blocking main ambulance gate; backup diesel generator supplies critical."
+    },
+    {
+      "id": "SEC-C3",
+      "name": "Sector 7 - Cyclone Evacuation Shelter #4",
+      "lat": 20.306,
+      "lng": 85.815,
+      "damage_score": 52.0,
+      "vulnerability_score": 75.0,
+      "access_score": 60.0,
+      "population_density": "High (1,450 Evacuated Citizens Inside)",
+      "critical_assets": [
+        "Reinforced Multi-Purpose Cyclone Shelter"
+      ],
+      "structures_destroyed": 0,
+      "structures_major": 6,
+      "structures_minor": 18,
+      "flood_water_level": "0.4m Surrounding Runoff",
+      "rescue_status": "MONITORING",
+      "evidence": "Concrete shelter structurally sound. Food and potable drinking water replenishment convoy needed."
+    },
+    {
+      "id": "SEC-C4",
+      "name": "Sector 1 - North Market & Power Substation",
+      "lat": 20.289,
+      "lng": 85.819,
+      "damage_score": 38.0,
+      "vulnerability_score": 45.0,
+      "access_score": 30.0,
+      "population_density": "Medium Commercial Hub",
+      "critical_assets": [
+        "33kV Electric Grid Substation",
+        "Telecom Tower"
+      ],
+      "structures_destroyed": 1,
+      "structures_major": 5,
+      "structures_minor": 20,
+      "flood_water_level": "Receding (0.2m)",
+      "rescue_status": "VERIFIED_SAFE",
+      "evidence": "Telecom tower guy-wires intact; tree debris cleared from road by local disaster volunteer force."
+    }
+  ],
+  "road_hazards": [
+    {
+      "id": "HAZ-C01",
+      "title": "Coastal Highway Washed Away by Storm Surge",
+      "coordinates": [
+        [
+          20.2965,
+          85.823
+        ],
+        [
+          20.2975,
+          85.822
+        ]
+      ],
+      "type": "STORM_SURGE_BREACH",
+      "severity": "CRITICAL",
+      "bypass_available": true
+    },
+    {
+      "id": "HAZ-C02",
+      "title": "Uprooted Banyan Trees & 33kV Power Grid Collapse",
+      "coordinates": [
+        [
+          20.294,
+          85.828
+        ],
+        [
+          20.2935,
+          85.83
+        ]
+      ],
+      "type": "FALLEN_TREES_POWER_LINES",
+      "severity": "HIGH",
+      "bypass_available": false
+    },
+    {
+      "id": "HAZ-C03",
+      "title": "Commercial Tin Shed Debris & Highway Blockade",
+      "coordinates": [
+        [
+          20.303,
+          85.817
+        ],
+        [
+          20.3045,
+          85.816
+        ]
+      ],
+      "type": "WIND_DEBRIS_OBSTACLE",
+      "severity": "HIGH",
+      "bypass_available": true
+    }
+  ]
+}
